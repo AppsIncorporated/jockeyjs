@@ -66,11 +66,23 @@
                 delete dispatcher.callbacks[envelope.id];
             };
 
-            window.location.href = "jockey://" + type + "/" + envelope.id + "?" + encodeURIComponent(JSON.stringify(envelope));
+            // In the original code we set the window.location.ref to the message
+            // we want to send, like so:
+            //     window.location.href = "jockey://" + type + "/" + envelope.id + "?" + encodeURIComponent(JSON.stringify(envelope));
+            // Unfortunately there is a race condition where setting the window
+            // location too frequently can cause some messages to be dropped.
+            // Instead we create an iframe and send via it. For more info, see:
+            //     http://stackoverflow.com/questions/9473582/ios-javascript-bridge
+  			var url = "jockey://" + type + "/" + envelope.id + "?" + encodeURIComponent(JSON.stringify(envelope));
+            var iframe = document.createElement("iframe");
+            iframe.setAttribute("src", url);
+            document.documentElement.appendChild(iframe);
+            iframe.parentNode.removeChild(iframe);
+            iframe = null;
         }
     };
 
-   
+  
 
     var Jockey = {
         listeners: {},
